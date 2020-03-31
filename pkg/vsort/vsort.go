@@ -5,9 +5,13 @@ import (
 	"strings"
 )
 
+// Comparator contains comparation settings and provides Compare(v1, v2)
+type Comparator struct {
+}
+
 // Compare returns an integer comparing two version strings.
 // The result will be 0 if v1==v2, -1 if v1 < v2, and +1 if v1 > v2.
-func Compare(v1, v2 string) (int, error) {
+func (*Comparator) Compare(v1, v2 string) (int, error) {
 	nums1 := strings.Split(v1, ".")
 	nums2 := strings.Split(v2, ".")
 

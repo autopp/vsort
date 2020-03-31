@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCompare(t *testing.T) {
+func TestComparatorCompare(t *testing.T) {
 	cases := []struct {
 		v1       string
 		v2       string
@@ -18,7 +18,8 @@ func TestCompare(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		actual, err := Compare(tt.v1, tt.v2)
+		var c Comparator
+		actual, err := c.Compare(tt.v1, tt.v2)
 		if assert.NoError(t, err) {
 			assert.Equal(t, tt.expected, actual)
 		}
