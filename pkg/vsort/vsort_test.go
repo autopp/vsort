@@ -17,6 +17,8 @@ func TestComparatorCompare(t *testing.T) {
 		{v1: "0.1.0", v2: "0.1.0", expected: 0},
 		{v1: "0.1.1", v2: "0.1.0", expected: 1},
 		{v1: "0.1.0", v2: "0.1.1", expected: -1},
+		{v1: "0.1.0", v2: "0.0.1", expected: 1},
+		{v1: "0.2.0", v2: "0.10.1", expected: -1},
 	}
 
 	genSubtestName := func(c Case) string {
