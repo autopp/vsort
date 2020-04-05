@@ -1,6 +1,7 @@
 package vsort
 
 import (
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -33,4 +34,13 @@ func (*Comparator) Compare(v1, v2 string) (int, error) {
 	}
 
 	return 0, nil
+}
+
+// Sort sorts given versions
+func Sort(versions []string) {
+	c := new(Comparator)
+	sort.Slice(versions, func(i, j int) bool {
+		r, _ := c.Compare(versions[i], versions[j])
+		return r < 0
+	})
 }

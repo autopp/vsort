@@ -44,3 +44,29 @@ func TestComparatorCompare(t *testing.T) {
 		})
 	}
 }
+
+func TestSort(t *testing.T) {
+	type Case struct {
+		versions []string
+		expected []string
+	}
+	cases := []Case{
+		{
+			versions: []string{"0.2.0", "0.0.1", "0.10.0", "0.0.2"},
+			expected: []string{"0.0.1", "0.0.2", "0.2.0", "0.10.0"},
+		},
+	}
+
+	genSubtestName := func(c Case) string {
+		return fmt.Sprintf("%#v", c.versions)
+	}
+
+	for _, tt := range cases {
+		t.Run(genSubtestName(tt), func(t *testing.T) {
+			copied := make([]string, len(tt.versions))
+			copy(copied, tt.versions)
+			Sort(copied)
+			assert.Equal(t, tt.expected, copied)
+		})
+	}
+}
