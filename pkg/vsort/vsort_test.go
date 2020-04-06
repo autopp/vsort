@@ -58,7 +58,7 @@ func TestSort(t *testing.T) {
 	}
 
 	genSubtestName := func(c Case) string {
-		return fmt.Sprintf("%#v", c.versions)
+		return fmt.Sprintf("%q", c.versions)
 	}
 
 	for _, tt := range cases {
