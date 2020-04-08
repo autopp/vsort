@@ -10,14 +10,26 @@ import (
 
 func TestExecute(t *testing.T) {
 	cases := []struct {
-		stdin    string
+		input    string
 		args     []string
 		expected string
-	}{}
+	}{
+		{
+			input: `0.2.0
+0.0.1
+0.10.0
+0.0.2`,
+			expected: `0.0.1
+0.0.2
+0.2.0
+0.10.0
+`,
+		},
+	}
 
 	for _, tt := range cases {
 		t.Run(fmt.Sprintf("%q", tt.args), func(t *testing.T) {
-			stdin := bytes.NewBufferString(tt.stdin)
+			stdin := bytes.NewBufferString(tt.input)
 			stdout := new(bytes.Buffer)
 			stderr := new(bytes.Buffer)
 
