@@ -25,6 +25,18 @@ func TestExecute(t *testing.T) {
 0.10.0
 `,
 		},
+		{
+			input: `0.2.0
+0.0.1
+0.10.0
+0.0.2
+`,
+			expected: `0.0.1
+0.0.2
+0.2.0
+0.10.0
+`,
+		},
 	}
 
 	for _, tt := range cases {
