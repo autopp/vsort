@@ -41,7 +41,7 @@ type SortOrder int
 
 const (
 	// Asc should be passed to Sort
-	Asc = iota
+	Asc SortOrder = iota
 	// Desc should be passed to Sort
 	Desc
 )
