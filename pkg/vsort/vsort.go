@@ -36,11 +36,32 @@ func (*Comparator) Compare(v1, v2 string) (int, error) {
 	return 0, nil
 }
 
+// SortOrder represent order of Sort
+type SortOrder int
+
+const (
+	// Asc should be passed to Sort
+	Asc = iota
+	// Desc should be passed to Sort
+	Desc
+)
+
+// String returns "Asc" or "Desc"
+func (o SortOrder) String() string {
+	if o == Asc {
+		return "Asc"
+	}
+	return "Desc"
+}
+
 // Sort sorts given versions
-func Sort(versions []string) {
+func Sort(versions []string, order SortOrder) {
 	c := new(Comparator)
 	sort.Slice(versions, func(i, j int) bool {
 		r, _ := c.Compare(versions[i], versions[j])
-		return r < 0
+		if order == Asc {
+			return r < 0
+		}
+		return r > 0
 	})
 }
