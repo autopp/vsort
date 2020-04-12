@@ -74,16 +74,11 @@ func TestExecute(t *testing.T) {
 
 		for _, tt := range cases {
 			t.Run(fmt.Sprintf("%q", append(tt.args, tt.filename)), func(t *testing.T) {
-				file, err := ioutil.TempFile("", tt.filename+"-*")
+				file, err := createTempfile(tt.filename+"-*", tt.contents)
 				if err != nil {
 					t.Fatalf("cannot create tmpfile %s: %s", tt.filename, err)
 				}
 				defer os.Remove(file.Name())
-
-				_, err = file.WriteString(tt.contents)
-				if err != nil {
-					t.Fatalf("cannot write to tmpfile %s: %s", tt.filename, err)
-				}
 
 				stdout := new(bytes.Buffer)
 				stderr := new(bytes.Buffer)
@@ -95,4 +90,84 @@ func TestExecute(t *testing.T) {
 			})
 		}
 	})
+
+	t.Run("WithMultipleFiles", func(t *testing.T) {
+		firstFile, err := createTempfile("first-*", "0.2.0\n0.0.1\n")
+		if err != nil {
+			t.Fatalf("cannot create tmpfile for first file: %s", err)
+		}
+		defer os.Remove(firstFile.Name())
+
+		secondFile, err := createTempfile("second-*", "0.10.0\n0.0.2")
+		if err != nil {
+			t.Fatalf("cannot create tmpfile for second file: %s", err)
+		}
+		defer os.Remove(secondFile.Name())
+
+		stdout := new(bytes.Buffer)
+		stderr := new(bytes.Buffer)
+		args := []string{firstFile.Name(), secondFile.Name()}
+		if err := Execute(new(bytes.Buffer), stdout, stderr, args); assert.NoError(t, err) {
+			expected := "0.0.1\n0.0.2\n0.2.0\n0.10.0\n"
+			assert.Equal(t, expected, stdout.String())
+		}
+	})
+
+	t.Run("WithStdin", func(t *testing.T) {
+		cases := []struct {
+			input    string
+			args     []string
+			expected string
+		}{
+			{
+				input: `0.2.0
+0.0.1
+0.10.0
+0.0.2`,
+				expected: `0.0.1
+0.0.2
+0.2.0
+0.10.0
+`,
+			},
+			{
+				input: `0.2.0
+0.0.1
+0.10.0
+0.0.2`,
+				args: []string{"-r"},
+				expected: `0.10.0
+0.2.0
+0.0.2
+0.0.1
+`,
+			},
+		}
+
+		for _, tt := range cases {
+			t.Run(fmt.Sprintf("%q", tt.args), func(t *testing.T) {
+				stdin := bytes.NewBufferString(tt.input)
+				stdout := new(bytes.Buffer)
+				stderr := new(bytes.Buffer)
+
+				if err := Execute(stdin, stdout, stderr, tt.args); assert.NoError(t, err) {
+					assert.Equal(t, tt.expected, stdout.String())
+				}
+			})
+		}
+	})
+}
+
+func createTempfile(filename, contents string) (*os.File, error) {
+	f, err := ioutil.TempFile("", filename)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	if _, err = f.WriteString(contents); err != nil {
+		return nil, err
+	}
+
+	return f, nil
 }
