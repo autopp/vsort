@@ -20,13 +20,61 @@ import (
 	"strings"
 )
 
-// Comparator contains comparation settings and provides Compare(v1, v2)
-type Comparator struct {
+// Sorter provides comparation and sorting versions
+type Sorter interface {
+	Compare(v1, v2 string) (int, error)
+	Sort(versions []string)
+}
+
+type order int
+
+const (
+	// Asc should be passed to Sort via `WithOrder(Asc)`
+	Asc order = iota
+	// Desc should be passed to Sort via `WithOrder(Desc)`
+	Desc
+)
+
+type sorter struct {
+	order order
+}
+
+// Option is Functional optional pattern object for Sort
+type Option interface {
+	apply(*sorter)
+}
+
+// WithOrder represent order of Sort
+type WithOrder order
+
+func (o WithOrder) apply(s *sorter) {
+	s.order = order(o)
+}
+
+// String returns "Asc" or "Desc"
+func (o WithOrder) String() string {
+	switch order(o) {
+	case Asc:
+		return "order=asc"
+	case Desc:
+		return "order=Desc"
+	default:
+		return "order=unknown"
+	}
+}
+
+// NewSorter returns Sorter initialized by given options
+func NewSorter(options ...Option) Sorter {
+	s := new(sorter)
+	for _, o := range options {
+		o.apply(s)
+	}
+	return s
 }
 
 // Compare returns an integer comparing two version strings.
 // The result will be 0 if v1==v2, -1 if v1 < v2, and +1 if v1 > v2.
-func (*Comparator) Compare(v1, v2 string) (int, error) {
+func (*sorter) Compare(v1, v2 string) (int, error) {
 	nums1 := strings.Split(v1, ".")
 	nums2 := strings.Split(v2, ".")
 
@@ -50,53 +98,11 @@ func (*Comparator) Compare(v1, v2 string) (int, error) {
 	return 0, nil
 }
 
-type sortConf struct {
-	order order
-}
-
-// Option is Functional optional pattern object for Sort
-type Option interface {
-	apply(*sortConf)
-}
-
-type order int
-
-// WithOrder represent order of Sort
-type WithOrder order
-
-const (
-	// Asc should be passed to Sort via `WithOrder(Asc)`
-	Asc order = iota
-	// Desc should be passed to Sort via `WithOrder(Desc)`
-	Desc
-)
-
-func (o WithOrder) apply(c *sortConf) {
-	c.order = order(o)
-}
-
-// String returns "Asc" or "Desc"
-func (o WithOrder) String() string {
-	switch order(o) {
-	case Asc:
-		return "order=asc"
-	case Desc:
-		return "order=Desc"
-	default:
-		return "order=unknown"
-	}
-}
-
 // Sort sorts given versions
-func Sort(versions []string, options ...Option) {
-	c := new(Comparator)
-	var conf sortConf
-	for _, o := range options {
-		o.apply(&conf)
-	}
+func (s *sorter) Sort(versions []string) {
 	sort.Slice(versions, func(i, j int) bool {
-		r, _ := c.Compare(versions[i], versions[j])
-		if conf.order == Asc {
+		r, _ := s.Compare(versions[i], versions[j])
+		if s.order == Asc {
 			return r < 0
 		}
 		return r > 0

@@ -23,6 +23,7 @@ import (
 
 func TestComparatorCompare(t *testing.T) {
 	type Case struct {
+		options  []Option
 		v1       string
 		v2       string
 		expected int
@@ -50,8 +51,7 @@ func TestComparatorCompare(t *testing.T) {
 
 	for _, tt := range cases {
 		t.Run(genSubtestName(tt), func(t *testing.T) {
-			var c Comparator
-			actual, err := c.Compare(tt.v1, tt.v2)
+			actual, err := NewSorter(tt.options...).Compare(tt.v1, tt.v2)
 			if assert.NoError(t, err) {
 				assert.Equal(t, tt.expected, actual)
 			}
@@ -86,7 +86,8 @@ func TestSort(t *testing.T) {
 		t.Run(genSubtestName(tt), func(t *testing.T) {
 			copied := make([]string, len(tt.versions))
 			copy(copied, tt.versions)
-			Sort(copied, tt.options...)
+
+			NewSorter(tt.options...).Sort(copied)
 			assert.Equal(t, tt.expected, copied)
 		})
 	}

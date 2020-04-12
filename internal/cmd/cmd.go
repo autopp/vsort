@@ -57,7 +57,8 @@ func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 			if reverse {
 				order = vsort.WithOrder(vsort.Desc)
 			}
-			vsort.Sort(lines, order)
+			s := vsort.NewSorter(order)
+			s.Sort(lines)
 			for _, line := range lines {
 				fmt.Fprintln(stdout, line)
 			}
