@@ -34,41 +34,25 @@ func TestExecute(t *testing.T) {
 		}{
 			{
 				filename: "normal",
-				contents: `0.2.0
-0.0.1
-0.10.0
-0.0.2`,
-				expected: `0.0.1
-0.0.2
-0.2.0
-0.10.0
-`,
+				contents: "0.2.0\n0.0.1\n0.10.0\n0.0.2\n",
+				expected: "0.0.1\n0.0.2\n0.2.0\n0.10.0\n",
 			},
 			{
 				filename: "wo_newline",
-				contents: `0.2.0
-0.0.1
-0.10.0
-0.0.2
-`,
-				expected: `0.0.1
-0.0.2
-0.2.0
-0.10.0
-`,
+				contents: "0.2.0\n0.0.1\n0.10.0\n0.0.2\n",
+				expected: "0.0.1\n0.0.2\n0.2.0\n0.10.0\n",
 			},
 			{
 				filename: "reverse",
-				contents: `0.2.0
-0.0.1
-0.10.0
-0.0.2`,
-				args: []string{"-r"},
-				expected: `0.10.0
-0.2.0
-0.0.2
-0.0.1
-`,
+				contents: "0.2.0\n0.0.1\n0.10.0\n0.0.2",
+				args:     []string{"-r"},
+				expected: "0.10.0\n0.2.0\n0.0.2\n0.0.1\n",
+			},
+			{
+				filename: "v-prefix",
+				contents: "v0.2.0\nv0.0.1\nv0.10.0\nv0.0.2\n",
+				args:     []string{"-p", "v"},
+				expected: "v0.0.1\nv0.0.2\nv0.2.0\nv0.10.0\n",
 			},
 		}
 

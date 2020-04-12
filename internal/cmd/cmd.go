@@ -33,6 +33,11 @@ func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 				return err
 			}
 
+			prefix, err := cmd.Flags().GetString("prefix")
+			if err != nil {
+				return err
+			}
+
 			var rs []io.Reader
 			if len(args) == 0 {
 				rs = []io.Reader{stdin}
@@ -57,7 +62,7 @@ func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 			if reverse {
 				order = vsort.WithOrder(vsort.Desc)
 			}
-			s := vsort.NewSorter(order)
+			s := vsort.NewSorter(order, vsort.WithPrefix(prefix))
 			s.Sort(lines)
 			for _, line := range lines {
 				fmt.Fprintln(stdout, line)
@@ -68,6 +73,7 @@ func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 	}
 
 	cmd.Flags().BoolP("reverse", "r", false, "Sort in reverse order.")
+	cmd.Flags().StringP("prefix", "p", "", "Expected prefix of version string")
 	cmd.SetArgs(args)
 	return cmd.Execute()
 }

@@ -36,7 +36,8 @@ const (
 )
 
 type sorter struct {
-	order order
+	order  order
+	prefix string
 }
 
 // Option is Functional optional pattern object for Sort
@@ -63,6 +64,16 @@ func (o WithOrder) String() string {
 	}
 }
 
+type WithPrefix string
+
+func (p WithPrefix) apply(s *sorter) {
+	s.prefix = string(p)
+}
+
+func (p WithPrefix) String() string {
+	return "prefix=" + string(p)
+}
+
 // NewSorter returns Sorter initialized by given options
 func NewSorter(options ...Option) Sorter {
 	s := new(sorter)
@@ -74,9 +85,9 @@ func NewSorter(options ...Option) Sorter {
 
 // Compare returns an integer comparing two version strings.
 // The result will be 0 if v1==v2, -1 if v1 < v2, and +1 if v1 > v2.
-func (*sorter) Compare(v1, v2 string) (int, error) {
-	nums1 := strings.Split(v1, ".")
-	nums2 := strings.Split(v2, ".")
+func (s *sorter) Compare(v1, v2 string) (int, error) {
+	nums1 := strings.Split(strings.TrimPrefix(v1, s.prefix), ".")
+	nums2 := strings.Split(strings.TrimPrefix(v2, s.prefix), ".")
 
 	for i := 0; i < len(nums1); i++ {
 		num1, err := strconv.Atoi(nums1[i])
