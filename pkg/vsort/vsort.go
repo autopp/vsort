@@ -54,6 +54,7 @@ type sortConf struct {
 	order order
 }
 
+// Option is Functional optional pattern object for Sort
 type Option interface {
 	apply(*sortConf)
 }
@@ -66,7 +67,7 @@ type WithOrder order
 const (
 	// Asc should be passed to Sort via `WithOrder(Asc)`
 	Asc order = iota
-	// Desc should be passed to Sort
+	// Desc should be passed to Sort via `WithOrder(Desc)`
 	Desc
 )
 
