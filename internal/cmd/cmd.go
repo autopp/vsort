@@ -16,7 +16,6 @@ package cmd
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"os"
 
@@ -40,7 +39,7 @@ func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 
 			var rs []io.Reader
 			if len(args) == 0 {
-				rs = []io.Reader{stdin}
+				rs = []io.Reader{cmd.InOrStdin()}
 			} else {
 				rs = make([]io.Reader, len(args))
 				for i, path := range args {
@@ -65,7 +64,7 @@ func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 			s := vsort.NewSorter(order, vsort.WithPrefix(prefix))
 			s.Sort(lines)
 			for _, line := range lines {
-				fmt.Fprintln(stdout, line)
+				cmd.Println(line)
 			}
 
 			return nil
@@ -74,6 +73,10 @@ func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 
 	cmd.Flags().BoolP("reverse", "r", false, "Sort in reverse order.")
 	cmd.Flags().StringP("prefix", "p", "", "Expected prefix of version string")
+
+	cmd.SetIn(stdin)
+	cmd.SetOut(stdout)
+	cmd.SetErr(stderr)
 	cmd.SetArgs(args)
 	return cmd.Execute()
 }
