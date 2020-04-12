@@ -18,6 +18,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"os"
 
 	"github.com/autopp/vsort/pkg/vsort"
 	"github.com/spf13/cobra"
@@ -32,14 +33,23 @@ func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 				return err
 			}
 
-			scanner := bufio.NewScanner(stdin)
-			lines := make([]string, 0)
-
-			for scanner.Scan() {
-				lines = append(lines, scanner.Text())
+			var rs []io.Reader
+			if len(args) == 0 {
+				rs = []io.Reader{stdin}
+			} else {
+				rs = make([]io.Reader, len(args))
+				for i, path := range args {
+					f, err := os.Open(path)
+					if err != nil {
+						return err
+					}
+					defer f.Close()
+					rs[i] = f
+				}
 			}
-			if err := scanner.Err(); err != nil {
-				fmt.Fprintln(stderr, err)
+
+			lines, err := readLinesFromStreams(rs)
+			if err != nil {
 				return err
 			}
 
@@ -59,4 +69,19 @@ func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 	cmd.Flags().BoolP("reverse", "r", false, "Sort in reverse order.")
 	cmd.SetArgs(args)
 	return cmd.Execute()
+}
+
+func readLinesFromStreams(rs []io.Reader) ([]string, error) {
+	lines := make([]string, 0)
+	for _, r := range rs {
+		scanner := bufio.NewScanner(r)
+		for scanner.Scan() {
+			lines = append(lines, scanner.Text())
+		}
+		if err := scanner.Err(); err != nil {
+			return nil, err
+		}
+	}
+
+	return lines, nil
 }

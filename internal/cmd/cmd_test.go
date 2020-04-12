@@ -17,20 +17,24 @@ package cmd
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestExecute(t *testing.T) {
-	t.Run("WithStdin", func(t *testing.T) {
+	t.Run("WithFile", func(t *testing.T) {
 		cases := []struct {
-			input    string
 			args     []string
+			filename string
+			contents string
 			expected string
 		}{
 			{
-				input: `0.2.0
+				filename: "normal",
+				contents: `0.2.0
 0.0.1
 0.10.0
 0.0.2`,
@@ -41,7 +45,8 @@ func TestExecute(t *testing.T) {
 `,
 			},
 			{
-				input: `0.2.0
+				filename: "wo_newline",
+				contents: `0.2.0
 0.0.1
 0.10.0
 0.0.2
@@ -53,7 +58,8 @@ func TestExecute(t *testing.T) {
 `,
 			},
 			{
-				input: `0.2.0
+				filename: "reverse",
+				contents: `0.2.0
 0.0.1
 0.10.0
 0.0.2`,
@@ -67,12 +73,23 @@ func TestExecute(t *testing.T) {
 		}
 
 		for _, tt := range cases {
-			t.Run(fmt.Sprintf("%q", tt.args), func(t *testing.T) {
-				stdin := bytes.NewBufferString(tt.input)
+			t.Run(fmt.Sprintf("%q", append(tt.args, tt.filename)), func(t *testing.T) {
+				file, err := ioutil.TempFile("", tt.filename+"-*")
+				if err != nil {
+					t.Fatalf("cannot create tmpfile %s: %s", tt.filename, err)
+				}
+				defer os.Remove(file.Name())
+
+				_, err = file.WriteString(tt.contents)
+				if err != nil {
+					t.Fatalf("cannot write to tmpfile %s: %s", tt.filename, err)
+				}
+
 				stdout := new(bytes.Buffer)
 				stderr := new(bytes.Buffer)
+				args := append(tt.args, file.Name())
 
-				if err := Execute(stdin, stdout, stderr, tt.args); assert.NoError(t, err) {
+				if err := Execute(new(bytes.Buffer), stdout, stderr, args); assert.NoError(t, err) {
 					assert.Equal(t, tt.expected, stdout.String())
 				}
 			})
