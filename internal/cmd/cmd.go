@@ -43,9 +43,9 @@ func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 				return err
 			}
 
-			order := vsort.Asc
+			order := vsort.WithOrder(vsort.Asc)
 			if reverse {
-				order = vsort.Desc
+				order = vsort.WithOrder(vsort.Desc)
 			}
 			vsort.Sort(lines, order)
 			for _, line := range lines {

@@ -50,30 +50,52 @@ func (*Comparator) Compare(v1, v2 string) (int, error) {
 	return 0, nil
 }
 
-// SortOrder represent order of Sort
-type SortOrder int
+type sortConf struct {
+	order order
+}
+
+type Option interface {
+	apply(*sortConf)
+}
+
+type order int
+
+// WithOrder represent order of Sort
+type WithOrder order
 
 const (
-	// Asc should be passed to Sort
-	Asc SortOrder = iota
+	// Asc should be passed to Sort via `WithOrder(Asc)`
+	Asc order = iota
 	// Desc should be passed to Sort
 	Desc
 )
 
+func (o WithOrder) apply(c *sortConf) {
+	c.order = order(o)
+}
+
 // String returns "Asc" or "Desc"
-func (o SortOrder) String() string {
-	if o == Asc {
-		return "Asc"
+func (o WithOrder) String() string {
+	switch order(o) {
+	case Asc:
+		return "order=asc"
+	case Desc:
+		return "order=Desc"
+	default:
+		return "order=unknown"
 	}
-	return "Desc"
 }
 
 // Sort sorts given versions
-func Sort(versions []string, order SortOrder) {
+func Sort(versions []string, options ...Option) {
 	c := new(Comparator)
+	var conf sortConf
+	for _, o := range options {
+		o.apply(&conf)
+	}
 	sort.Slice(versions, func(i, j int) bool {
 		r, _ := c.Compare(versions[i], versions[j])
-		if order == Asc {
+		if conf.order == Asc {
 			return r < 0
 		}
 		return r > 0
