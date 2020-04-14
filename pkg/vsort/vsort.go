@@ -64,6 +64,7 @@ func (o WithOrder) String() string {
 	}
 }
 
+// WithPrefix represent expected prefix of version string
 type WithPrefix string
 
 func (p WithPrefix) apply(s *sorter) {
