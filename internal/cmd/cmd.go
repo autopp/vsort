@@ -19,6 +19,9 @@ import (
 	"io"
 	"os"
 
+	"encoding/json"
+	"io/ioutil"
+
 	"github.com/autopp/vsort/pkg/vsort"
 	"github.com/spf13/cobra"
 )
@@ -27,6 +30,11 @@ import (
 func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 	cmd := &cobra.Command{
 		RunE: func(cmd *cobra.Command, args []string) error {
+			jsonInput, err := cmd.Flags().GetBool("json-input")
+			if err != nil {
+				return err
+			}
+
 			reverse, err := cmd.Flags().GetBool("reverse")
 			if err != nil {
 				return err
@@ -52,7 +60,12 @@ func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 				}
 			}
 
-			lines, err := readLinesFromStreams(rs)
+			var lines []string
+			if jsonInput {
+				lines, err = readJSONFromStreams(rs)
+			} else {
+				lines, err = readLinesFromStreams(rs)
+			}
 			if err != nil {
 				return err
 			}
@@ -71,6 +84,7 @@ func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 		},
 	}
 
+	cmd.Flags().BoolP("json-input", "j", false, "assume that input is json array")
 	cmd.Flags().BoolP("reverse", "r", false, "Sort in reverse order.")
 	cmd.Flags().StringP("prefix", "p", "", "Expected prefix of version string")
 
@@ -79,6 +93,24 @@ func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 	cmd.SetErr(stderr)
 	cmd.SetArgs(args)
 	return cmd.Execute()
+}
+
+func readJSONFromStreams(rs []io.Reader) ([]string, error) {
+	lines := make([]string, 0)
+	for _, r := range rs {
+		j, err := ioutil.ReadAll(r)
+		if err != nil {
+			return nil, err
+		}
+
+		var a []string
+		if err := json.Unmarshal(j, &a); err != nil {
+			return nil, err
+		}
+
+		lines = append(lines, a...)
+	}
+	return lines, nil
 }
 
 func readLinesFromStreams(rs []io.Reader) ([]string, error) {

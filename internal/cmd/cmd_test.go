@@ -54,6 +54,12 @@ func TestExecute(t *testing.T) {
 				args:     []string{"-p", "v"},
 				expected: "v0.0.1\nv0.0.2\nv0.2.0\nv0.10.0\n",
 			},
+			{
+				filename: "json-input",
+				contents: `["0.2.0", "0.0.1", "0.10.0", "0.0.2"]`,
+				args:     []string{"-j"},
+				expected: "0.0.1\n0.0.2\n0.2.0\n0.10.0\n",
+			},
 		}
 
 		for _, tt := range cases {
