@@ -57,7 +57,7 @@ func TestExecute(t *testing.T) {
 			{
 				filename: "json-input",
 				contents: `["0.2.0", "0.0.1", "0.10.0", "0.0.2"]`,
-				args:     []string{"-j"},
+				args:     []string{"-i", "json"},
 				expected: "0.0.1\n0.0.2\n0.2.0\n0.10.0\n",
 			},
 		}
