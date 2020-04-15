@@ -28,32 +28,53 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const (
-	linesInput = "lines"
-	jsonInput  = "json"
-)
-
 // Execute execute main logic
 func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
+	const (
+		linesInput = "lines"
+		jsonInput  = "json"
+	)
+
+	const (
+		linesOutput = "lines"
+		jsonOutput  = "json"
+	)
+
 	cmd := &cobra.Command{
 		RunE: func(cmd *cobra.Command, args []string) error {
+			// Get --input
 			input, err := cmd.Flags().GetString("input")
 			if err != nil {
 				return err
 			}
 
-			readFunc, ok := map[string]func(io.Reader) ([]string, error){
+			inputFunc, ok := map[string]func(io.Reader) ([]string, error){
 				linesInput: readLines, jsonInput: readJSON,
 			}[input]
 			if !ok {
 				return fmt.Errorf("unknown input format: %q (expected %q or %q)", input, linesInput, jsonInput)
 			}
 
+			// Get --output
+			output, err := cmd.Flags().GetString("output")
+			if err != nil {
+				return err
+			}
+
+			outputFunc, ok := map[string]func(*cobra.Command, []string) error{
+				linesOutput: outputLines, jsonOutput: outputJSON,
+			}[output]
+			if !ok {
+				return fmt.Errorf("unknown output format: %q (expected %q or %q)", output, linesOutput, jsonOutput)
+			}
+
+			// Get --reverse
 			reverse, err := cmd.Flags().GetBool("reverse")
 			if err != nil {
 				return err
 			}
 
+			// Get --prefix
 			prefix, err := cmd.Flags().GetString("prefix")
 			if err != nil {
 				return err
@@ -76,7 +97,7 @@ func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 
 			var versions []string
 			for _, r := range rs {
-				vs, err := readFunc(r)
+				vs, err := inputFunc(r)
 				if err != nil {
 					return err
 				}
@@ -89,17 +110,19 @@ func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 			}
 			s := vsort.NewSorter(order, vsort.WithPrefix(prefix))
 			s.Sort(versions)
-			for _, line := range versions {
-				cmd.Println(line)
+
+			if err := outputFunc(cmd, versions); err != nil {
+				return err
 			}
 
 			return nil
 		},
 	}
 
-	cmd.Flags().StringP("input", "i", linesInput, "assume that input is json array")
+	cmd.Flags().StringP("input", "i", linesInput, `Specify input format. Accepted values are "lines" or "json" (default: "lines").`)
+	cmd.Flags().StringP("output", "o", linesOutput, `Specify output format. Accepted values are "lines" or "json" (default: "lines").`)
 	cmd.Flags().BoolP("reverse", "r", false, "Sort in reverse order.")
-	cmd.Flags().StringP("prefix", "p", "", "Expected prefix of version string")
+	cmd.Flags().StringP("prefix", "p", "", "Expected prefix of version string.")
 
 	cmd.SetIn(stdin)
 	cmd.SetOut(stdout)
@@ -132,4 +155,22 @@ func readJSON(r io.Reader) ([]string, error) {
 		return nil, err
 	}
 	return a, nil
+}
+
+func outputLines(cmd *cobra.Command, versions []string) error {
+	for _, v := range versions {
+		cmd.Println(v)
+	}
+
+	return nil
+}
+
+func outputJSON(cmd *cobra.Command, versions []string) error {
+	b, err := json.Marshal(versions)
+	if err != nil {
+		return err
+	}
+	cmd.Print(string(b))
+
+	return nil
 }
