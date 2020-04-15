@@ -22,17 +22,31 @@ import (
 	"encoding/json"
 	"io/ioutil"
 
+	"fmt"
+
 	"github.com/autopp/vsort/pkg/vsort"
 	"github.com/spf13/cobra"
+)
+
+const (
+	linesInput = "lines"
+	jsonInput  = "json"
 )
 
 // Execute execute main logic
 func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 	cmd := &cobra.Command{
 		RunE: func(cmd *cobra.Command, args []string) error {
-			jsonInput, err := cmd.Flags().GetBool("json-input")
+			input, err := cmd.Flags().GetString("input")
 			if err != nil {
 				return err
+			}
+
+			readFunc, ok := map[string]func(io.Reader) ([]string, error){
+				linesInput: readLines, jsonInput: readJSON,
+			}[input]
+			if !ok {
+				return fmt.Errorf("unknown input format: %q (expected %q or %q)", input, linesInput, jsonInput)
 			}
 
 			reverse, err := cmd.Flags().GetBool("reverse")
@@ -60,14 +74,13 @@ func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 				}
 			}
 
-			var lines []string
-			if jsonInput {
-				lines, err = readJSONFromStreams(rs)
-			} else {
-				lines, err = readLinesFromStreams(rs)
-			}
-			if err != nil {
-				return err
+			var versions []string
+			for _, r := range rs {
+				vs, err := readFunc(r)
+				if err != nil {
+					return err
+				}
+				versions = append(versions, vs...)
 			}
 
 			order := vsort.WithOrder(vsort.Asc)
@@ -75,8 +88,8 @@ func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 				order = vsort.WithOrder(vsort.Desc)
 			}
 			s := vsort.NewSorter(order, vsort.WithPrefix(prefix))
-			s.Sort(lines)
-			for _, line := range lines {
+			s.Sort(versions)
+			for _, line := range versions {
 				cmd.Println(line)
 			}
 
@@ -84,7 +97,7 @@ func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 		},
 	}
 
-	cmd.Flags().BoolP("json-input", "j", false, "assume that input is json array")
+	cmd.Flags().StringP("input", "i", linesInput, "assume that input is json array")
 	cmd.Flags().BoolP("reverse", "r", false, "Sort in reverse order.")
 	cmd.Flags().StringP("prefix", "p", "", "Expected prefix of version string")
 
@@ -95,35 +108,28 @@ func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 	return cmd.Execute()
 }
 
-func readJSONFromStreams(rs []io.Reader) ([]string, error) {
+func readLines(r io.Reader) ([]string, error) {
 	lines := make([]string, 0)
-	for _, r := range rs {
-		j, err := ioutil.ReadAll(r)
-		if err != nil {
-			return nil, err
-		}
-
-		var a []string
-		if err := json.Unmarshal(j, &a); err != nil {
-			return nil, err
-		}
-
-		lines = append(lines, a...)
+	scanner := bufio.NewScanner(r)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
 	}
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
 	return lines, nil
 }
 
-func readLinesFromStreams(rs []io.Reader) ([]string, error) {
-	lines := make([]string, 0)
-	for _, r := range rs {
-		scanner := bufio.NewScanner(r)
-		for scanner.Scan() {
-			lines = append(lines, scanner.Text())
-		}
-		if err := scanner.Err(); err != nil {
-			return nil, err
-		}
+func readJSON(r io.Reader) ([]string, error) {
+	j, err := ioutil.ReadAll(r)
+	if err != nil {
+		return nil, err
 	}
 
-	return lines, nil
+	var a []string
+	if err := json.Unmarshal(j, &a); err != nil {
+		return nil, err
+	}
+	return a, nil
 }
