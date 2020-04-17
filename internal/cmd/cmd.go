@@ -80,6 +80,11 @@ func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 				return err
 			}
 
+			level, err := cmd.Flags().GetInt("level")
+			if err != nil {
+				return err
+			}
+
 			var rs []io.Reader
 			if len(args) == 0 {
 				rs = []io.Reader{cmd.InOrStdin()}
@@ -108,7 +113,7 @@ func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 			if reverse {
 				order = vsort.WithOrder(vsort.Desc)
 			}
-			s := vsort.NewSorter(order, vsort.WithPrefix(prefix))
+			s := vsort.NewSorter(order, vsort.WithPrefix(prefix), vsort.WithLevel(level))
 			s.Sort(versions)
 
 			if err := outputFunc(cmd, versions); err != nil {
@@ -123,6 +128,7 @@ func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 	cmd.Flags().StringP("output", "o", linesOutput, `Specify output format. Accepted values are "lines" or "json" (default: "lines").`)
 	cmd.Flags().BoolP("reverse", "r", false, "Sort in reverse order.")
 	cmd.Flags().StringP("prefix", "p", "", "Expected prefix of version string.")
+	cmd.Flags().IntP("level", "L", -1, "Expected version level")
 
 	cmd.SetIn(stdin)
 	cmd.SetOut(stdout)
