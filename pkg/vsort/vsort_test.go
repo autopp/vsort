@@ -40,6 +40,12 @@ func TestComparatorCompare(t *testing.T) {
 			v2:       "v0.1.0",
 			expected: 1,
 		},
+		{
+			options:  []Option{WithLevel(2)},
+			v1:       "0.10",
+			v2:       "0.1",
+			expected: 1,
+		},
 	}
 
 	genSubtestName := func(c Case) string {
@@ -86,6 +92,11 @@ func TestSort(t *testing.T) {
 			versions: []string{"v0.2.0", "v0.0.1", "v0.10.0", "v0.0.2"},
 			options:  []Option{WithPrefix("v")},
 			expected: []string{"v0.0.1", "v0.0.2", "v0.2.0", "v0.10.0"},
+		},
+		{
+			versions: []string{"2.0", "0.1", "10.0", "0.2"},
+			options:  []Option{WithLevel(2)},
+			expected: []string{"0.1", "0.2", "2.0", "10.0"},
 		},
 	}
 
