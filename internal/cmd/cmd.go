@@ -41,6 +41,7 @@ func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 	)
 
 	cmd := &cobra.Command{
+		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Get --input
 			input, err := cmd.Flags().GetString("input")

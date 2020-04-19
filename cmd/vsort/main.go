@@ -15,7 +15,6 @@
 package main
 
 import (
-	"log"
 	"os"
 
 	"github.com/autopp/vsort/internal/cmd"
@@ -23,6 +22,6 @@ import (
 
 func main() {
 	if err := cmd.Execute(os.Stdin, os.Stdout, os.Stderr, os.Args[1:]); err != nil {
-		log.Fatalln(err)
+		os.Exit(2)
 	}
 }
