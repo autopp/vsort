@@ -86,26 +86,33 @@ func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 				return err
 			}
 
-			var rs []io.Reader
+			type inputStream struct {
+				name string
+				r    io.Reader
+			}
+			var is []inputStream
+
 			if len(args) == 0 {
-				rs = []io.Reader{cmd.InOrStdin()}
+				is = []inputStream{{"<stdin>", cmd.InOrStdin()}}
 			} else {
-				rs = make([]io.Reader, len(args))
+				is = make([]inputStream, len(args))
+
 				for i, path := range args {
 					f, err := os.Open(path)
 					if err != nil {
 						return err
 					}
 					defer f.Close()
-					rs[i] = f
+					is[i].name = path
+					is[i].r = f
 				}
 			}
 
 			var versions []string
-			for _, r := range rs {
-				vs, err := inputFunc(r)
+			for _, i := range is {
+				vs, err := inputFunc(i.r)
 				if err != nil {
-					return err
+					return fmt.Errorf("cannot read from %s: %w", i.name, err)
 				}
 				versions = append(versions, vs...)
 			}
