@@ -25,6 +25,7 @@ import (
 type Sorter interface {
 	Compare(v1, v2 string) (int, error)
 	Sort(versions []string)
+	IsVald(v string) bool
 }
 
 type order int
@@ -133,4 +134,28 @@ func (s *sorter) Sort(versions []string) {
 		}
 		return r > 0
 	})
+}
+
+// IsValid reports whether its argument v is a valid version string.
+func (s *sorter) IsVald(v string) bool {
+	// check prefix
+	if !strings.HasPrefix(v, s.prefix) {
+		return false
+	}
+	v = v[len(s.prefix):]
+
+	// check level
+	nums := strings.Split(v, ".")
+	if s.level > 0 && len(nums) != s.level {
+		return false
+	}
+
+	// check each level format
+	for _, n := range nums {
+		if _, err := strconv.Atoi(n); err != nil || n[0] == '+' || n[0] == '-' {
+			return false
+		}
+	}
+
+	return true
 }
