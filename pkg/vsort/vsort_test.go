@@ -114,3 +114,83 @@ func TestSort(t *testing.T) {
 		})
 	}
 }
+
+func TestIsValid(t *testing.T) {
+	type versionCase struct {
+		version  string
+		expected bool
+	}
+	cases := []struct {
+		options  []Option
+		versions []versionCase
+	}{
+		{
+			options: []Option{},
+			versions: []versionCase{
+				{
+					version:  "0.1.0",
+					expected: true,
+				},
+				{
+					version:  "1.0",
+					expected: true,
+				},
+				{
+					version:  "v0.1.0",
+					expected: false,
+				},
+				{
+					version:  "0.1.0-rc1",
+					expected: false,
+				},
+			},
+		},
+		{
+			options: []Option{WithPrefix("v")},
+			versions: []versionCase{
+				{
+					version:  "v0.1.0",
+					expected: true,
+				},
+				{
+					version:  "v1.0",
+					expected: true,
+				},
+				{
+					version:  "0.1.0",
+					expected: false,
+				},
+			},
+		},
+		{
+			options: []Option{WithLevel(3)},
+			versions: []versionCase{
+				{
+					version:  "0.1.0",
+					expected: true,
+				},
+				{
+					version:  "1.0",
+					expected: false,
+				},
+				{
+					version:  "0.1.0.1",
+					expected: false,
+				},
+			},
+		},
+	}
+
+	genSubtestName := func(options []Option, c versionCase) string {
+		return fmt.Sprintf("%q(%s)", c.version, options)
+	}
+
+	for _, c := range cases {
+		options := c.options
+		for _, tt := range c.versions {
+			t.Run(genSubtestName(options, tt), func(t *testing.T) {
+				assert.Equal(t, tt.expected, NewSorter(options...).IsVald(tt.version))
+			})
+		}
+	}
+}
