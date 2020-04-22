@@ -16,6 +16,7 @@ package cmd
 
 import (
 	"bufio"
+	"errors"
 	"io"
 	"os"
 
@@ -41,7 +42,8 @@ func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 	)
 
 	cmd := &cobra.Command{
-		SilenceUsage: true,
+		SilenceUsage:  true,
+		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Get --input
 			input, err := cmd.Flags().GetString("input")
@@ -81,7 +83,14 @@ func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 				return err
 			}
 
+			// Get --level
 			level, err := cmd.Flags().GetInt("level")
+			if err != nil {
+				return err
+			}
+
+			// Get --strict
+			strict, err := cmd.Flags().GetBool("strict")
 			if err != nil {
 				return err
 			}
@@ -122,9 +131,22 @@ func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 				order = vsort.WithOrder(vsort.Desc)
 			}
 			s := vsort.NewSorter(order, vsort.WithPrefix(prefix), vsort.WithLevel(level))
-			s.Sort(versions)
 
-			if err := outputFunc(cmd, versions); err != nil {
+			// validate inputs
+			validated := make([]string, 0, len(versions))
+			for _, v := range versions {
+				if s.IsValid(v) {
+					validated = append(validated, v)
+				} else if strict {
+					msg := fmt.Sprintf("invalid version is contained: %s\n", v)
+					cmd.PrintErrln(msg)
+					return errors.New(msg)
+				}
+			}
+
+			s.Sort(validated)
+
+			if err := outputFunc(cmd, validated); err != nil {
 				return err
 			}
 
@@ -137,6 +159,7 @@ func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 	cmd.Flags().BoolP("reverse", "r", false, "Sort in reverse order.")
 	cmd.Flags().StringP("prefix", "p", "", "Expected prefix of version string.")
 	cmd.Flags().IntP("level", "L", -1, "Expected version level")
+	cmd.Flags().Bool("strict", false, "Make error when invalid version is contained.")
 
 	cmd.SetIn(stdin)
 	cmd.SetOut(stdout)
