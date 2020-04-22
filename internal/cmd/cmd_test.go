@@ -86,6 +86,12 @@ func TestExecute(t *testing.T) {
 				success:  true,
 				expected: "0.0.1\n0.0.2\n0.2.0\n0.10.0\n",
 			},
+			{
+				filename: "with-invalid-strict",
+				contents: "0.2.0\nv0.3.0\n0.0.1\n0.10.0\n1.0.0-a\n0.0.2\n",
+				args:     []string{"--strict"},
+				success:  false,
+			},
 		}
 
 		for _, tt := range cases {
@@ -100,8 +106,13 @@ func TestExecute(t *testing.T) {
 				stderr := new(bytes.Buffer)
 				args := append(tt.args, file.Name())
 
-				if err := Execute(new(bytes.Buffer), stdout, stderr, args); assert.NoError(t, err) {
-					assert.Equal(t, tt.expected, stdout.String())
+				err = Execute(new(bytes.Buffer), stdout, stderr, args)
+				if tt.success {
+					if assert.NoError(t, err) {
+						assert.Equal(t, tt.expected, stdout.String())
+					}
+				} else {
+					assert.Error(t, err)
 				}
 			})
 		}
