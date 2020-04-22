@@ -122,9 +122,18 @@ func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 				order = vsort.WithOrder(vsort.Desc)
 			}
 			s := vsort.NewSorter(order, vsort.WithPrefix(prefix), vsort.WithLevel(level))
-			s.Sort(versions)
 
-			if err := outputFunc(cmd, versions); err != nil {
+			// validate inputs
+			validated := make([]string, 0, len(versions))
+			for _, v := range versions {
+				if s.IsValid(v) {
+					validated = append(validated, v)
+				}
+			}
+
+			s.Sort(validated)
+
+			if err := outputFunc(cmd, validated); err != nil {
 				return err
 			}
 

@@ -30,47 +30,61 @@ func TestExecute(t *testing.T) {
 			args     []string
 			filename string
 			contents string
+			success  bool
 			expected string
 		}{
 			{
 				filename: "normal",
 				contents: "0.2.0\n0.0.1\n0.10.0\n0.0.2\n",
+				success:  true,
 				expected: "0.0.1\n0.0.2\n0.2.0\n0.10.0\n",
 			},
 			{
 				filename: "wo_newline",
 				contents: "0.2.0\n0.0.1\n0.10.0\n0.0.2\n",
+				success:  true,
 				expected: "0.0.1\n0.0.2\n0.2.0\n0.10.0\n",
 			},
 			{
 				filename: "reverse",
 				contents: "0.2.0\n0.0.1\n0.10.0\n0.0.2",
 				args:     []string{"-r"},
+				success:  true,
 				expected: "0.10.0\n0.2.0\n0.0.2\n0.0.1\n",
 			},
 			{
 				filename: "v-prefix",
 				contents: "v0.2.0\nv0.0.1\nv0.10.0\nv0.0.2\n",
 				args:     []string{"-p", "v"},
+				success:  true,
 				expected: "v0.0.1\nv0.0.2\nv0.2.0\nv0.10.0\n",
 			},
 			{
 				filename: "json-input",
 				contents: `["0.2.0", "0.0.1", "0.10.0", "0.0.2"]`,
 				args:     []string{"-i", "json"},
+				success:  true,
 				expected: "0.0.1\n0.0.2\n0.2.0\n0.10.0\n",
 			},
 			{
 				filename: "json-output",
 				contents: "0.2.0\n0.0.1\n0.10.0\n0.0.2\n",
 				args:     []string{"-o", "json"},
+				success:  true,
 				expected: `["0.0.1","0.0.2","0.2.0","0.10.0"]`,
 			},
 			{
 				filename: "level2",
 				contents: "2.0\n0.1\n10.0\n0.2\n",
 				args:     []string{"-L", "2"},
+				success:  true,
 				expected: "0.1\n0.2\n2.0\n10.0\n",
+			},
+			{
+				filename: "with-invalid",
+				contents: "0.2.0\nv0.3.0\n0.0.1\n0.10.0\n1.0.0-a\n0.0.2\n",
+				success:  true,
+				expected: "0.0.1\n0.0.2\n0.2.0\n0.10.0\n",
 			},
 		}
 
