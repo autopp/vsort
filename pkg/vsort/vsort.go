@@ -25,7 +25,7 @@ import (
 type Sorter interface {
 	Compare(v1, v2 string) (int, error)
 	Sort(versions []string)
-	IsVald(v string) bool
+	IsValid(v string) bool
 }
 
 type order int
@@ -137,7 +137,7 @@ func (s *sorter) Sort(versions []string) {
 }
 
 // IsValid reports whether its argument v is a valid version string.
-func (s *sorter) IsVald(v string) bool {
+func (s *sorter) IsValid(v string) bool {
 	// check prefix
 	if !strings.HasPrefix(v, s.prefix) {
 		return false

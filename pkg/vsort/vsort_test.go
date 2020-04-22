@@ -189,7 +189,7 @@ func TestIsValid(t *testing.T) {
 		options := c.options
 		for _, tt := range c.versions {
 			t.Run(genSubtestName(options, tt), func(t *testing.T) {
-				assert.Equal(t, tt.expected, NewSorter(options...).IsVald(tt.version))
+				assert.Equal(t, tt.expected, NewSorter(options...).IsValid(tt.version))
 			})
 		}
 	}
