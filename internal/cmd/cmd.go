@@ -42,6 +42,7 @@ func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 	)
 
 	cmd := &cobra.Command{
+		Use:           "vsort",
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
