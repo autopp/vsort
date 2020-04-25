@@ -45,14 +45,15 @@ type sorter struct {
 
 // Option is Functional optional pattern object for Sort
 type Option interface {
-	apply(*sorter)
+	apply(*sorter) error
 }
 
 // WithOrder represent order of Sort
 type WithOrder order
 
-func (o WithOrder) apply(s *sorter) {
+func (o WithOrder) apply(s *sorter) error {
 	s.order = order(o)
+	return nil
 }
 
 // String returns "Asc" or "Desc"
@@ -70,8 +71,9 @@ func (o WithOrder) String() string {
 // WithPrefix represent expected prefix of version string
 type WithPrefix string
 
-func (p WithPrefix) apply(s *sorter) {
+func (p WithPrefix) apply(s *sorter) error {
 	s.prefix = string(p)
+	return nil
 }
 
 func (p WithPrefix) String() string {
@@ -81,8 +83,9 @@ func (p WithPrefix) String() string {
 // WithLevel represent expected level of version string
 type WithLevel int
 
-func (l WithLevel) apply(s *sorter) {
+func (l WithLevel) apply(s *sorter) error {
 	s.level = int(l)
+	return nil
 }
 
 func (l WithLevel) String() string {
@@ -90,13 +93,15 @@ func (l WithLevel) String() string {
 }
 
 // NewSorter returns Sorter initialized by given options
-func NewSorter(options ...Option) Sorter {
+func NewSorter(options ...Option) (Sorter, error) {
 	defaults := []Option{WithLevel(-1)}
 	s := new(sorter)
 	for _, o := range append(defaults, options...) {
-		o.apply(s)
+		if err := o.apply(s); err != nil {
+			return nil, err
+		}
 	}
-	return s
+	return s, nil
 }
 
 // Compare returns an integer comparing two version strings.

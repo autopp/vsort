@@ -131,7 +131,11 @@ func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 			if reverse {
 				order = vsort.WithOrder(vsort.Desc)
 			}
-			s := vsort.NewSorter(order, vsort.WithPrefix(prefix), vsort.WithLevel(level))
+
+			s, err := vsort.NewSorter(order, vsort.WithPrefix(prefix), vsort.WithLevel(level))
+			if err != nil {
+				return err
+			}
 
 			// validate inputs
 			validated := make([]string, 0, len(versions))
