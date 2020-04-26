@@ -134,8 +134,19 @@ func NewSorter(options ...Option) (Sorter, error) {
 // Compare returns an integer comparing two version strings.
 // The result will be 0 if v1==v2, -1 if v1 < v2, and +1 if v1 > v2.
 func (s *sorter) Compare(v1, v2 string) (int, error) {
-	nums1 := strings.SplitN(strings.TrimPrefix(v1, s.prefix), ".", s.level)
-	nums2 := strings.SplitN(strings.TrimPrefix(v2, s.prefix), ".", s.level)
+	v1 = strings.TrimPrefix(v1, s.prefix)
+	v2 = strings.TrimPrefix(v2, s.prefix)
+	if s.suffix != nil {
+		loc1 := s.suffix.FindStringIndex(v1)
+		loc2 := s.suffix.FindStringIndex(v2)
+		if loc1 == nil || loc2 == nil {
+			return 0, fmt.Errorf("suffix is not match (v1: %q, v2: %q, suffix: %q)", v1, v2, s.suffix.String())
+		}
+		v1 = v1[0:loc1[0]]
+		v2 = v2[0:loc2[0]]
+	}
+	nums1 := strings.SplitN(v1, ".", s.level)
+	nums2 := strings.SplitN(v2, ".", s.level)
 
 	for i := 0; i < len(nums1); i++ {
 		num1, err := strconv.Atoi(nums1[i])
