@@ -63,9 +63,12 @@ func TestComparatorCompare(t *testing.T) {
 
 	for _, tt := range cases {
 		t.Run(genSubtestName(tt), func(t *testing.T) {
-			actual, err := NewSorter(tt.options...).Compare(tt.v1, tt.v2)
+			s, err := NewSorter(tt.options...)
 			if assert.NoError(t, err) {
-				assert.Equal(t, tt.expected, actual)
+				actual, err := s.Compare(tt.v1, tt.v2)
+				if assert.NoError(t, err) {
+					assert.Equal(t, tt.expected, actual)
+				}
 			}
 		})
 	}
@@ -109,8 +112,11 @@ func TestSort(t *testing.T) {
 			copied := make([]string, len(tt.versions))
 			copy(copied, tt.versions)
 
-			NewSorter(tt.options...).Sort(copied)
-			assert.Equal(t, tt.expected, copied)
+			s, err := NewSorter(tt.options...)
+			if assert.NoError(t, err) {
+				s.Sort(copied)
+				assert.Equal(t, tt.expected, copied)
+			}
 		})
 	}
 }
@@ -189,7 +195,10 @@ func TestIsValid(t *testing.T) {
 		options := c.options
 		for _, tt := range c.versions {
 			t.Run(genSubtestName(options, tt), func(t *testing.T) {
-				assert.Equal(t, tt.expected, NewSorter(options...).IsValid(tt.version))
+				s, err := NewSorter(options...)
+				if assert.NoError(t, err) {
+					assert.Equal(t, tt.expected, s.IsValid(tt.version))
+				}
 			})
 		}
 	}

@@ -110,6 +110,7 @@ func TestExecute(t *testing.T) {
 				if tt.success {
 					if assert.NoError(t, err) {
 						assert.Equal(t, tt.expected, stdout.String())
+						assert.Empty(t, stderr.String())
 					}
 				} else {
 					assert.Error(t, err)
