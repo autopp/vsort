@@ -169,6 +169,27 @@ func TestIsValid(t *testing.T) {
 			},
 		},
 		{
+			options: []Option{WithSuffix(`-\d+`)},
+			versions: []versionCase{
+				{
+					version:  "0.1.0-1",
+					expected: true,
+				},
+				{
+					version:  "1.0-10",
+					expected: true,
+				},
+				{
+					version:  "0.1.0-alpha",
+					expected: false,
+				},
+				{
+					version:  "0.1.0",
+					expected: false,
+				},
+			},
+		},
+		{
 			options: []Option{WithLevel(3)},
 			versions: []versionCase{
 				{

@@ -17,6 +17,7 @@ package vsort
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -41,6 +42,7 @@ const (
 type sorter struct {
 	order  order
 	prefix string
+	suffix *regexp.Regexp
 	level  int
 }
 
@@ -84,6 +86,19 @@ func (p WithPrefix) apply(s *sorter) error {
 
 func (p WithPrefix) String() string {
 	return "prefix=" + string(p)
+}
+
+// WithSuffix represents expected suffix pattern of version string
+type WithSuffix string
+
+func (suf WithSuffix) apply(s *sorter) error {
+	r, err := regexp.Compile(string(suf) + "$")
+	if err != nil {
+		return err
+	}
+	s.suffix = r
+
+	return nil
 }
 
 // WithLevel represent expected level of version string
@@ -160,6 +175,14 @@ func (s *sorter) IsValid(v string) bool {
 		return false
 	}
 	v = v[len(s.prefix):]
+
+	if s.suffix != nil {
+		loc := s.suffix.FindStringIndex(v)
+		if loc == nil {
+			return false
+		}
+		v = v[0:loc[0]]
+	}
 
 	// check level
 	nums := strings.Split(v, ".")
