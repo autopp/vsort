@@ -15,6 +15,7 @@
 package vsort
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 	"strconv"
@@ -52,7 +53,12 @@ type Option interface {
 type WithOrder order
 
 func (o WithOrder) apply(s *sorter) error {
-	s.order = order(o)
+	ov := order(o)
+	if ov != Asc && ov != Desc {
+		return errors.New("order should be one of Asc or Desc")
+	}
+	s.order = ov
+
 	return nil
 }
 
@@ -84,7 +90,13 @@ func (p WithPrefix) String() string {
 type WithLevel int
 
 func (l WithLevel) apply(s *sorter) error {
-	s.level = int(l)
+	level := int(l)
+	if level == 0 {
+		return errors.New("level shoud not be zero")
+	}
+
+	s.level = level
+
 	return nil
 }
 
