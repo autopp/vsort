@@ -41,6 +41,12 @@ func TestComparatorCompare(t *testing.T) {
 			expected: 1,
 		},
 		{
+			options:  []Option{WithSuffix(`-\d+`)},
+			v1:       "0.1.1-1",
+			v2:       "0.1.0-2",
+			expected: 1,
+		},
+		{
 			options:  []Option{WithLevel(2)},
 			v1:       "0.10",
 			v2:       "0.1",
@@ -161,6 +167,27 @@ func TestIsValid(t *testing.T) {
 				{
 					version:  "v1.0",
 					expected: true,
+				},
+				{
+					version:  "0.1.0",
+					expected: false,
+				},
+			},
+		},
+		{
+			options: []Option{WithSuffix(`-\d+`)},
+			versions: []versionCase{
+				{
+					version:  "0.1.0-1",
+					expected: true,
+				},
+				{
+					version:  "1.0-10",
+					expected: true,
+				},
+				{
+					version:  "0.1.0-alpha",
+					expected: false,
 				},
 				{
 					version:  "0.1.0",

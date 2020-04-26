@@ -17,6 +17,7 @@ package vsort
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -41,6 +42,7 @@ const (
 type sorter struct {
 	order  order
 	prefix string
+	suffix *regexp.Regexp
 	level  int
 }
 
@@ -86,6 +88,19 @@ func (p WithPrefix) String() string {
 	return "prefix=" + string(p)
 }
 
+// WithSuffix represents expected suffix pattern of version string
+type WithSuffix string
+
+func (suf WithSuffix) apply(s *sorter) error {
+	r, err := regexp.Compile(string(suf) + "$")
+	if err != nil {
+		return err
+	}
+	s.suffix = r
+
+	return nil
+}
+
 // WithLevel represent expected level of version string
 type WithLevel int
 
@@ -119,8 +134,19 @@ func NewSorter(options ...Option) (Sorter, error) {
 // Compare returns an integer comparing two version strings.
 // The result will be 0 if v1==v2, -1 if v1 < v2, and +1 if v1 > v2.
 func (s *sorter) Compare(v1, v2 string) (int, error) {
-	nums1 := strings.SplitN(strings.TrimPrefix(v1, s.prefix), ".", s.level)
-	nums2 := strings.SplitN(strings.TrimPrefix(v2, s.prefix), ".", s.level)
+	v1 = strings.TrimPrefix(v1, s.prefix)
+	v2 = strings.TrimPrefix(v2, s.prefix)
+	if s.suffix != nil {
+		loc1 := s.suffix.FindStringIndex(v1)
+		loc2 := s.suffix.FindStringIndex(v2)
+		if loc1 == nil || loc2 == nil {
+			return 0, fmt.Errorf("suffix is not match (v1: %q, v2: %q, suffix: %q)", v1, v2, s.suffix.String())
+		}
+		v1 = v1[0:loc1[0]]
+		v2 = v2[0:loc2[0]]
+	}
+	nums1 := strings.SplitN(v1, ".", s.level)
+	nums2 := strings.SplitN(v2, ".", s.level)
 
 	for i := 0; i < len(nums1); i++ {
 		num1, err := strconv.Atoi(nums1[i])
@@ -160,6 +186,14 @@ func (s *sorter) IsValid(v string) bool {
 		return false
 	}
 	v = v[len(s.prefix):]
+
+	if s.suffix != nil {
+		loc := s.suffix.FindStringIndex(v)
+		if loc == nil {
+			return false
+		}
+		v = v[0:loc[0]]
+	}
 
 	// check level
 	nums := strings.Split(v, ".")

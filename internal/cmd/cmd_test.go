@@ -60,6 +60,13 @@ func TestExecute(t *testing.T) {
 				expected: "v0.0.1\nv0.0.2\nv0.2.0\nv0.10.0\n",
 			},
 			{
+				filename: "release-suffix",
+				contents: "0.2.0-1\n0.0.1-2\n0.10.0-3\n0.0.2-4\n",
+				args:     []string{"-s", `-\d+`},
+				success:  true,
+				expected: "0.0.1-2\n0.0.2-4\n0.2.0-1\n0.10.0-3\n",
+			},
+			{
 				filename: "json-input",
 				contents: `["0.2.0", "0.0.1", "0.10.0", "0.0.2"]`,
 				args:     []string{"-i", "json"},

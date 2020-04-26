@@ -84,6 +84,12 @@ func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 				return err
 			}
 
+			// Get --suffix
+			suffix, err := cmd.Flags().GetString("suffix")
+			if err != nil {
+				return err
+			}
+
 			// Get --level
 			level, err := cmd.Flags().GetInt("level")
 			if err != nil {
@@ -132,7 +138,11 @@ func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 				order = vsort.WithOrder(vsort.Desc)
 			}
 
-			s, err := vsort.NewSorter(order, vsort.WithPrefix(prefix), vsort.WithLevel(level))
+			options := []vsort.Option{order, vsort.WithPrefix(prefix), vsort.WithLevel(level)}
+			if suffix != "" {
+				options = append(options, vsort.WithSuffix(suffix))
+			}
+			s, err := vsort.NewSorter(options...)
 			if err != nil {
 				return err
 			}
@@ -163,6 +173,7 @@ func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 	cmd.Flags().StringP("output", "o", linesOutput, `Specify output format. Accepted values are "lines" or "json" (default: "lines").`)
 	cmd.Flags().BoolP("reverse", "r", false, "Sort in reverse order.")
 	cmd.Flags().StringP("prefix", "p", "", "Expected prefix of version string.")
+	cmd.Flags().StringP("suffix", "s", "", "Expected suffix pattern of version string.")
 	cmd.Flags().IntP("level", "L", -1, "Expected version level")
 	cmd.Flags().Bool("strict", false, "Make error when invalid version is contained.")
 
