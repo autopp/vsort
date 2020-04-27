@@ -21,7 +21,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestComparatorCompare(t *testing.T) {
+func TestSorterCompare(t *testing.T) {
 	type Case struct {
 		options  []Option
 		v1       string
@@ -80,7 +80,7 @@ func TestComparatorCompare(t *testing.T) {
 	}
 }
 
-func TestSort(t *testing.T) {
+func TestSorterSort(t *testing.T) {
 	type Case struct {
 		versions []string
 		options  []Option
@@ -127,7 +127,7 @@ func TestSort(t *testing.T) {
 	}
 }
 
-func TestIsValid(t *testing.T) {
+func TestSorterIsValid(t *testing.T) {
 	type versionCase struct {
 		version  string
 		expected bool
