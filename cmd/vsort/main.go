@@ -20,8 +20,10 @@ import (
 	"github.com/autopp/vsort/internal/cmd"
 )
 
+var version = "HEAD"
+
 func main() {
-	if err := cmd.Execute(os.Stdin, os.Stdout, os.Stderr, os.Args[1:]); err != nil {
+	if err := cmd.Execute(version, os.Stdin, os.Stdout, os.Stderr, os.Args[1:]); err != nil {
 		os.Exit(2)
 	}
 }
