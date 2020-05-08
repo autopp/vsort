@@ -166,27 +166,13 @@ func TestExecute(t *testing.T) {
 			expected string
 		}{
 			{
-				input: `0.2.0
-0.0.1
-0.10.0
-0.0.2`,
-				expected: `0.0.1
-0.0.2
-0.2.0
-0.10.0
-`,
+				input:    "0.2.0\n0.0.1\n0.10.0\n0.0.2",
+				expected: "0.0.1\n0.0.2\n0.2.0\n0.10.0\n",
 			},
 			{
-				input: `0.2.0
-0.0.1
-0.10.0
-0.0.2`,
-				args: []string{"-r"},
-				expected: `0.10.0
-0.2.0
-0.0.2
-0.0.1
-`,
+				input:    "0.2.0\n0.0.1\n0.10.0\n0.0.2",
+				args:     []string{"-r"},
+				expected: "0.10.0\n0.2.0\n0.0.2\n0.0.1\n",
 			},
 		}
 
