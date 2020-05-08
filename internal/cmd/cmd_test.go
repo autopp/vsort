@@ -17,6 +17,7 @@ package cmd
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -30,7 +31,7 @@ func TestExecute(t *testing.T) {
 		stdout := new(bytes.Buffer)
 		stderr := new(bytes.Buffer)
 
-		if err := Execute(version, new(bytes.Buffer), stdout, stderr, []string{"--version"}); assert.NoError(t, err) {
+		if assertSuccessWithNoStderr(t, version, new(bytes.Buffer), stdout, stderr, []string{"--version"}) {
 			assert.Contains(t, stdout.String(), "vsort version "+version)
 		}
 	})
@@ -119,18 +120,18 @@ func TestExecute(t *testing.T) {
 				}
 				defer os.Remove(file.Name())
 
+				version := "HEAD"
+				stdin := new(bytes.Buffer)
 				stdout := new(bytes.Buffer)
 				stderr := new(bytes.Buffer)
 				args := append(tt.args, file.Name())
 
-				err = Execute("HEAD", new(bytes.Buffer), stdout, stderr, args)
 				if tt.success {
-					if assert.NoError(t, err) {
+					if assertSuccessWithNoStderr(t, version, stdin, stdout, new(bytes.Buffer), args) {
 						assert.Equal(t, tt.expected, stdout.String())
-						assert.Empty(t, stderr.String())
 					}
 				} else {
-					assert.Error(t, err)
+					assert.Error(t, Execute(version, stdin, stdout, stderr, args))
 				}
 			})
 		}
@@ -150,9 +151,9 @@ func TestExecute(t *testing.T) {
 		defer os.Remove(secondFile.Name())
 
 		stdout := new(bytes.Buffer)
-		stderr := new(bytes.Buffer)
 		args := []string{firstFile.Name(), secondFile.Name()}
-		if err := Execute("HEAD", new(bytes.Buffer), stdout, stderr, args); assert.NoError(t, err) {
+
+		if assertSuccessWithNoStderr(t, "HEAD", new(bytes.Buffer), stdout, new(bytes.Buffer), args) {
 			expected := "0.0.1\n0.0.2\n0.2.0\n0.10.0\n"
 			assert.Equal(t, expected, stdout.String())
 		}
@@ -165,27 +166,13 @@ func TestExecute(t *testing.T) {
 			expected string
 		}{
 			{
-				input: `0.2.0
-0.0.1
-0.10.0
-0.0.2`,
-				expected: `0.0.1
-0.0.2
-0.2.0
-0.10.0
-`,
+				input:    "0.2.0\n0.0.1\n0.10.0\n0.0.2",
+				expected: "0.0.1\n0.0.2\n0.2.0\n0.10.0\n",
 			},
 			{
-				input: `0.2.0
-0.0.1
-0.10.0
-0.0.2`,
-				args: []string{"-r"},
-				expected: `0.10.0
-0.2.0
-0.0.2
-0.0.1
-`,
+				input:    "0.2.0\n0.0.1\n0.10.0\n0.0.2",
+				args:     []string{"-r"},
+				expected: "0.10.0\n0.2.0\n0.0.2\n0.0.1\n",
 			},
 		}
 
@@ -193,9 +180,8 @@ func TestExecute(t *testing.T) {
 			t.Run(fmt.Sprintf("%q", tt.args), func(t *testing.T) {
 				stdin := bytes.NewBufferString(tt.input)
 				stdout := new(bytes.Buffer)
-				stderr := new(bytes.Buffer)
 
-				if err := Execute("HEAD", stdin, stdout, stderr, tt.args); assert.NoError(t, err) {
+				if assertSuccessWithNoStderr(t, "HEAD", stdin, stdout, new(bytes.Buffer), tt.args) {
 					assert.Equal(t, tt.expected, stdout.String())
 				}
 			})
@@ -215,4 +201,8 @@ func createTempfile(filename, contents string) (*os.File, error) {
 	}
 
 	return f, nil
+}
+
+func assertSuccessWithNoStderr(t *testing.T, version string, stdin io.Reader, stdout, stderr *bytes.Buffer, args []string) bool {
+	return assert.NoError(t, Execute(version, stdin, stdout, stderr, args)) && assert.Empty(t, stderr.String())
 }
