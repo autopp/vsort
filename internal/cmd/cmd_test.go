@@ -25,6 +25,16 @@ import (
 )
 
 func TestExecute(t *testing.T) {
+	t.Run("WithVersionFlag", func(t *testing.T) {
+		version := "v0.1.0"
+		stdout := new(bytes.Buffer)
+		stderr := new(bytes.Buffer)
+
+		if err := Execute(version, new(bytes.Buffer), stdout, stderr, []string{"--version"}); assert.NoError(t, err) {
+			assert.Contains(t, stdout.String(), "vsort version "+version)
+		}
+	})
+
 	t.Run("WithFile", func(t *testing.T) {
 		cases := []struct {
 			args     []string
@@ -113,7 +123,7 @@ func TestExecute(t *testing.T) {
 				stderr := new(bytes.Buffer)
 				args := append(tt.args, file.Name())
 
-				err = Execute(new(bytes.Buffer), stdout, stderr, args)
+				err = Execute("HEAD", new(bytes.Buffer), stdout, stderr, args)
 				if tt.success {
 					if assert.NoError(t, err) {
 						assert.Equal(t, tt.expected, stdout.String())
@@ -142,7 +152,7 @@ func TestExecute(t *testing.T) {
 		stdout := new(bytes.Buffer)
 		stderr := new(bytes.Buffer)
 		args := []string{firstFile.Name(), secondFile.Name()}
-		if err := Execute(new(bytes.Buffer), stdout, stderr, args); assert.NoError(t, err) {
+		if err := Execute("HEAD", new(bytes.Buffer), stdout, stderr, args); assert.NoError(t, err) {
 			expected := "0.0.1\n0.0.2\n0.2.0\n0.10.0\n"
 			assert.Equal(t, expected, stdout.String())
 		}
@@ -185,7 +195,7 @@ func TestExecute(t *testing.T) {
 				stdout := new(bytes.Buffer)
 				stderr := new(bytes.Buffer)
 
-				if err := Execute(stdin, stdout, stderr, tt.args); assert.NoError(t, err) {
+				if err := Execute("HEAD", stdin, stdout, stderr, tt.args); assert.NoError(t, err) {
 					assert.Equal(t, tt.expected, stdout.String())
 				}
 			})

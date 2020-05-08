@@ -30,7 +30,7 @@ import (
 )
 
 // Execute execute main logic
-func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
+func Execute(version string, stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 	const (
 		linesInput = "lines"
 		jsonInput  = "json"
@@ -46,6 +46,14 @@ func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			// Get --version and process if given
+			if showVersion, err := cmd.Flags().GetBool("version"); err != nil {
+				return err
+			} else if showVersion {
+				cmd.Printf("vsort version %s\n", version)
+				return nil
+			}
+
 			// Get --input
 			input, err := cmd.Flags().GetString("input")
 			if err != nil {
@@ -169,6 +177,7 @@ func Execute(stdin io.Reader, stdout, stderr io.Writer, args []string) error {
 		},
 	}
 
+	cmd.Flags().BoolP("version", "v", false, "Print the version and silently exits.")
 	cmd.Flags().StringP("input", "i", linesInput, `Specify input format. Accepted values are "lines" or "json" (default: "lines").`)
 	cmd.Flags().StringP("output", "o", linesOutput, `Specify output format. Accepted values are "lines" or "json" (default: "lines").`)
 	cmd.Flags().BoolP("reverse", "r", false, "Sort in reverse order.")
