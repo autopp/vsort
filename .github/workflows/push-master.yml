@@ -1,3 +1,5 @@
+name: push-master
+
 on:
   push:
     branches: ["master"]

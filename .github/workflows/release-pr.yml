@@ -1,3 +1,5 @@
+name: release-pr
+
 on:
   pull_request:
     branches: ["master"]
