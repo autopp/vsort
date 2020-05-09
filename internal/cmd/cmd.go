@@ -42,7 +42,7 @@ func Execute(version string, stdin io.Reader, stdout, stderr io.Writer, args []s
 	)
 
 	cmd := &cobra.Command{
-		Use:           "vsort",
+		Use:           "vsort [flags] [files]",
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
