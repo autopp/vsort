@@ -2,10 +2,10 @@ name: push-master
 
 on:
   push:
-    branches: ["master"]
+    branches: [master]
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
     steps:
     - name: Set up Go 1.x
@@ -33,5 +33,32 @@ jobs:
     - name: Save Artifact
       uses: actions/upload-artifact@v2
       with:
-        name: artifact
-        path: ${{ github.workspace }}/build/*/vsort
+        name: binaries
+        path: build/*/vsort*
+  smoke-test:
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+        include:
+          - os: macos-latest
+            osarch: darwin-amd64
+            extention: ''
+          - os: windows-latest
+            osarch: windows-amd64
+            extention: '.exe'
+          - os: ubuntu-latest
+            osarch: linux-amd64
+            extention: ''
+      fail-fast: false
+    needs: [build]
+    runs-on: "${{ matrix.os }}"
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: binaries
+          path: binaries
+      - name: Smoke Test
+        run: |
+          chmod a+x "binaries/vsort-${{ matrix.osarch }}/vsort${{ matrix.extention }}"
+          binaries/vsort-${{ matrix.osarch }}/vsort${{ matrix.extention }} "-h"
