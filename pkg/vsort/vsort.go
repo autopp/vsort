@@ -41,7 +41,7 @@ const (
 
 type sorter struct {
 	order  order
-	prefix string
+	prefix *regexp.Regexp
 	suffix *regexp.Regexp
 	level  int
 }
@@ -80,7 +80,11 @@ func (o WithOrder) String() string {
 type WithPrefix string
 
 func (p WithPrefix) apply(s *sorter) error {
-	s.prefix = string(p)
+	r, err := regexp.Compile("^" + string(p))
+	if err != nil {
+		return err
+	}
+	s.prefix = r
 	return nil
 }
 
@@ -134,8 +138,16 @@ func NewSorter(options ...Option) (Sorter, error) {
 // Compare returns an integer comparing two version strings.
 // The result will be 0 if v1==v2, -1 if v1 < v2, and +1 if v1 > v2.
 func (s *sorter) Compare(v1, v2 string) (int, error) {
-	v1 = strings.TrimPrefix(v1, s.prefix)
-	v2 = strings.TrimPrefix(v2, s.prefix)
+	if s.prefix != nil {
+		loc1 := s.prefix.FindStringIndex(v1)
+		loc2 := s.prefix.FindStringIndex(v2)
+		if loc1 == nil || loc2 == nil {
+			return 0, fmt.Errorf("suffix is not match (v1: %q, v2: %q, suffix: %q)", v1, v2, s.prefix.String())
+		}
+		v1 = v1[loc1[1]:]
+		v2 = v2[loc2[1]:]
+	}
+
 	if s.suffix != nil {
 		loc1 := s.suffix.FindStringIndex(v1)
 		loc2 := s.suffix.FindStringIndex(v2)
@@ -182,10 +194,13 @@ func (s *sorter) Sort(versions []string) {
 // IsValid reports whether its argument v is a valid version string.
 func (s *sorter) IsValid(v string) bool {
 	// check prefix
-	if !strings.HasPrefix(v, s.prefix) {
-		return false
+	if s.prefix != nil {
+		loc := s.prefix.FindStringIndex(v)
+		if loc == nil {
+			return false
+		}
+		v = v[loc[1]:]
 	}
-	v = v[len(s.prefix):]
 
 	if s.suffix != nil {
 		loc := s.suffix.FindStringIndex(v)

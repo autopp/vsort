@@ -41,6 +41,12 @@ func TestSorterCompare(t *testing.T) {
 			expected: 1,
 		},
 		{
+			options:  []Option{WithPrefix("[[:alpha:]]+-")},
+			v1:       "rc-0.1.1",
+			v2:       "version-0.1.0",
+			expected: 1,
+		},
+		{
 			options:  []Option{WithSuffix(`-\d+`)},
 			v1:       "0.1.1-1",
 			v2:       "0.1.0-2",
@@ -175,6 +181,22 @@ func TestSorterIsValid(t *testing.T) {
 			},
 		},
 		{
+			options: []Option{WithPrefix("[[:alpha:]]+-")},
+			versions: []versionCase{
+				{
+					version:  "version-0.1.0",
+					expected: true,
+				},
+				{
+					version:  "v1.0",
+					expected: false,
+				},
+				{
+					version:  "0.1.0",
+					expected: false,
+				},
+			},
+		}, {
 			options: []Option{WithSuffix(`-\d+`)},
 			versions: []versionCase{
 				{
