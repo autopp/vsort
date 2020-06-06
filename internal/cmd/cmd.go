@@ -181,7 +181,7 @@ func Execute(version string, stdin io.Reader, stdout, stderr io.Writer, args []s
 	cmd.Flags().StringP("input", "i", linesInput, `Specify input format. Accepted values are "lines" or "json" (default: "lines").`)
 	cmd.Flags().StringP("output", "o", linesOutput, `Specify output format. Accepted values are "lines" or "json" (default: "lines").`)
 	cmd.Flags().BoolP("reverse", "r", false, "Sort in reverse order.")
-	cmd.Flags().StringP("prefix", "p", "", "Expected prefix of version string.")
+	cmd.Flags().StringP("prefix", "p", "", "Expected prefix pattern of version string.")
 	cmd.Flags().StringP("suffix", "s", "", "Expected suffix pattern of version string.")
 	cmd.Flags().IntP("level", "L", -1, "Expected version level")
 	cmd.Flags().Bool("strict", false, "Make error when invalid version is contained.")
