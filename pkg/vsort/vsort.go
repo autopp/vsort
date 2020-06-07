@@ -142,7 +142,7 @@ func (s *sorter) Compare(v1, v2 string) (int, error) {
 		loc1 := s.prefix.FindStringIndex(v1)
 		loc2 := s.prefix.FindStringIndex(v2)
 		if loc1 == nil || loc2 == nil {
-			return 0, fmt.Errorf("suffix is not match (v1: %q, v2: %q, suffix: %q)", v1, v2, s.prefix.String())
+			return 0, fmt.Errorf("prefix is not match (v1: %q, v2: %q, prefix: %q)", v1, v2, s.prefix.String())
 		}
 		v1 = v1[loc1[1]:]
 		v2 = v2[loc2[1]:]
