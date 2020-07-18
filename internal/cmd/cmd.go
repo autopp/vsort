@@ -42,9 +42,8 @@ func Execute(version string, stdin io.Reader, stdout, stderr io.Writer, args []s
 	)
 
 	cmd := &cobra.Command{
-		Use:           "vsort [flags] [files]",
-		SilenceUsage:  true,
-		SilenceErrors: true,
+		Use:          "vsort [flags] [files]",
+		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Get --version and process if given
 			if showVersion, err := cmd.Flags().GetBool("version"); err != nil {
