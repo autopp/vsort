@@ -31,11 +31,25 @@ import (
 
 // Execute execute main logic
 func Execute(version string, stdin io.Reader, stdout, stderr io.Writer, args []string) error {
+	// options
+	const (
+		versionFlag = "version"
+		inputFlag   = "input"
+		outputFlag  = "output"
+		reverseFlag = "reverse"
+		prefixFlag  = "prefix"
+		suffixFlag  = "suffix"
+		levelFlag   = "level"
+		strictFlag  = "strict"
+	)
+
+	// values of --input
 	const (
 		linesInput = "lines"
 		jsonInput  = "json"
 	)
 
+	// values of --output
 	const (
 		linesOutput = "lines"
 		jsonOutput  = "json"
@@ -46,7 +60,7 @@ func Execute(version string, stdin io.Reader, stdout, stderr io.Writer, args []s
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Get --version and process if given
-			if showVersion, err := cmd.Flags().GetBool("version"); err != nil {
+			if showVersion, err := cmd.Flags().GetBool(versionFlag); err != nil {
 				return err
 			} else if showVersion {
 				cmd.Printf("vsort version %s\n", version)
@@ -54,7 +68,7 @@ func Execute(version string, stdin io.Reader, stdout, stderr io.Writer, args []s
 			}
 
 			// Get --input
-			input, err := cmd.Flags().GetString("input")
+			input, err := cmd.Flags().GetString(inputFlag)
 			if err != nil {
 				return err
 			}
@@ -67,7 +81,7 @@ func Execute(version string, stdin io.Reader, stdout, stderr io.Writer, args []s
 			}
 
 			// Get --output
-			output, err := cmd.Flags().GetString("output")
+			output, err := cmd.Flags().GetString(outputFlag)
 			if err != nil {
 				return err
 			}
@@ -80,31 +94,31 @@ func Execute(version string, stdin io.Reader, stdout, stderr io.Writer, args []s
 			}
 
 			// Get --reverse
-			reverse, err := cmd.Flags().GetBool("reverse")
+			reverse, err := cmd.Flags().GetBool(reverseFlag)
 			if err != nil {
 				return err
 			}
 
 			// Get --prefix
-			prefix, err := cmd.Flags().GetString("prefix")
+			prefix, err := cmd.Flags().GetString(prefixFlag)
 			if err != nil {
 				return err
 			}
 
 			// Get --suffix
-			suffix, err := cmd.Flags().GetString("suffix")
+			suffix, err := cmd.Flags().GetString(suffixFlag)
 			if err != nil {
 				return err
 			}
 
 			// Get --level
-			level, err := cmd.Flags().GetInt("level")
+			level, err := cmd.Flags().GetInt(levelFlag)
 			if err != nil {
 				return err
 			}
 
 			// Get --strict
-			strict, err := cmd.Flags().GetBool("strict")
+			strict, err := cmd.Flags().GetBool(strictFlag)
 			if err != nil {
 				return err
 			}
@@ -176,14 +190,14 @@ func Execute(version string, stdin io.Reader, stdout, stderr io.Writer, args []s
 		},
 	}
 
-	cmd.Flags().BoolP("version", "v", false, "Print the version and silently exits.")
-	cmd.Flags().StringP("input", "i", linesInput, `Specify input format. Accepted values are "lines" or "json" (default: "lines").`)
-	cmd.Flags().StringP("output", "o", linesOutput, `Specify output format. Accepted values are "lines" or "json" (default: "lines").`)
-	cmd.Flags().BoolP("reverse", "r", false, "Sort in reverse order.")
-	cmd.Flags().StringP("prefix", "p", "", "Expected prefix pattern of version string.")
-	cmd.Flags().StringP("suffix", "s", "", "Expected suffix pattern of version string.")
-	cmd.Flags().IntP("level", "L", -1, "Expected version level")
-	cmd.Flags().Bool("strict", false, "Make error when invalid version is contained.")
+	cmd.Flags().BoolP(versionFlag, "v", false, "Print the version and silently exits.")
+	cmd.Flags().StringP(inputFlag, "i", linesInput, `Specify input format. Accepted values are "lines" or "json" (default: "lines").`)
+	cmd.Flags().StringP(outputFlag, "o", linesOutput, `Specify output format. Accepted values are "lines" or "json" (default: "lines").`)
+	cmd.Flags().BoolP(reverseFlag, "r", false, "Sort in reverse order.")
+	cmd.Flags().StringP(prefixFlag, "p", "", "Expected prefix pattern of version string.")
+	cmd.Flags().StringP(suffixFlag, "s", "", "Expected suffix pattern of version string.")
+	cmd.Flags().IntP(levelFlag, "L", -1, "Expected version level")
+	cmd.Flags().Bool(strictFlag, false, "Make error when invalid version is contained.")
 
 	cmd.SetIn(stdin)
 	cmd.SetOut(stdout)
