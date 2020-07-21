@@ -29,7 +29,10 @@ jobs:
     - name: Run Test
       run: make test
     - name: Build
-      run: make build
+      run: |
+        make build GOOS=linux GOARCH=amd64
+        make build GOOS=darwin GOARCH=amd64
+        make build GOOS=windows GOARCH=amd64
     - name: Save Artifact
       uses: actions/upload-artifact@v2
       with:
